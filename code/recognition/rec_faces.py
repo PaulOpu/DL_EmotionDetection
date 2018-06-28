@@ -1,10 +1,19 @@
 from PIL import Image
 import face_recognition
+import os
+
 
 im = "images/testing/obama.jpg"
 
 
-def  recognize_faces(im):
+def  recognize_faces(im, image_rescale=(48, 48), save_loc=None, new_ext=None):
+
+    filename, ext = os.path.splitext(im)
+    if new_ext is not None:
+        ext = new_ext
+
+    filename = os.path.basename(filename)
+
     # Load the jpg file into a numpy array
     image = face_recognition.load_image_file(im)
 
@@ -25,10 +34,21 @@ def  recognize_faces(im):
         face_image = image[top:bottom, left:right]
         pil_image = Image.fromarray(face_image)
         pil_g = pil_image.convert("LA")
-        pil_g = pil_g.resize((48,48), Image.ANTIALIAS)
-        pil_g.show()
+        pil_g = pil_g.resize(image_rescale, Image.ANTIALIAS)
+
+        if save_loc is None:
+            pil_g.show()
+        else:
+            pil_g.save(save_loc + os.sep + filename + ext)
 
 
-    
 
-recognize_faces(im)
+def recognize_from_folder(folder, save_loc=None):
+    for im in os.listdir(folder):
+        recognize_faces(os.path.join(folder, im), save_loc)
+
+
+if __name__ == "__main__":
+    folder = "images/testing/"
+    #recognize_faces(im)
+    recognize_from_folder(folder)
