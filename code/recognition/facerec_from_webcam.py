@@ -16,6 +16,16 @@ class Video_Emotion_Rec:
     def __init__(self):
         self.predictor = model.Predictor()
 
+        self.int_to_emotion = {
+                                0:"Angry",
+                                1:"Disgust",
+                                2:"Fear",
+                                3:"Happy",
+                                4:"Sad",
+                                5:"Surprise",
+                                6:"Neutral",
+                            }
+
     def start_video_recognition(self, image_h=48, image_w=48, processing=Image.ANTIALIAS):
         # params: 
         #   image_h, image_w: size of image after rescaling
@@ -52,10 +62,12 @@ class Video_Emotion_Rec:
                 emotions= []
                 for face_location in face_locations:
                     top, right, bottom, left = face_location
-                    face = frame[top:bottom, left:right]
-                    face_image = Image.fromarray(face).resize((image_h, image_w), processing)
-                    emotion = self.predictor.predict(face_image) 
-                    emotions.append(emotion)
+                    face = rgb_small_frame[top:bottom, left:right]
+                    face_image = Image.fromarray(face).resize((image_h, image_w), processing).convert("L")
+                    #face_image.show()
+                    emotion = self.predictor.predict(face_image)
+
+                    emotions.append(self.int_to_emotion[int(emotion)])
 
             frame_count += 1
 
