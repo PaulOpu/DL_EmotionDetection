@@ -58,7 +58,6 @@ def cnn_model_fn(features, labels, mode):
     
     # Input Layer
     input_layer = tf.reshape(tf.cast(features,tf.float32), [-1, 48, 48, 1])
-    print(labels)
     #one_hot_labels = tf.one_hot(labels,7)
     
     conv_layer = input_layer
@@ -85,7 +84,6 @@ def cnn_model_fn(features, labels, mode):
             neurons=n,
             mode=mode
         )
-        print(fc_layer)
         
     logits = tf.layers.dense(inputs=fc_layer, units=7)
     
@@ -140,6 +138,16 @@ def eval_input_fn(features, labels=None, batch_size=None):
     # Return the read end of the pipeline.
     return dataset.make_one_shot_iterator().get_next()
 
+def pred_input_fn(features):
+    """An input function for evaluation or prediction"""
+
+
+    # Convert inputs to a tf.dataset object.
+    dataset = tf.data.Dataset.from_tensor_slices(features)
+
+    # Return the read end of the pipeline.
+    return dataset.make_one_shot_iterator().get_next()
+
 
 class Predictor:
 
@@ -149,15 +157,15 @@ class Predictor:
         
     def predict(self, im):
 
-        pred = self.clf.predict(input_fn=eval_input_fn(features=[im],
-                         batch_size=1))
+        im = np.array(im)
+        im = im.flatten()
+        
 
-        return pred
+
+        pred = self.clf.predict(input_fn=lambda:eval_input_fn(features=np.array([im]), batch_size=1))
+
+        return list(pred)[0]["classes"]
 
     
-
-#
-emotion_classifier = tf.estimator.Estimator(
-    model_fn=cnn_model_fn, model_dir="tmp/mnist_convnet_model")
 
 
